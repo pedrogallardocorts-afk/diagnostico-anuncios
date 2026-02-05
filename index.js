@@ -4,57 +4,79 @@ import OpenAI from "openai";
 const app = express();
 app.use(express.json());
 
-// ===== OpenAI client =====
+// ===== OpenAI =====
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ===== Puerto (Railway) =====
-const PORT = process.env.PORT || 8080;
-
-// ===== Home con interfaz HTML =====
+// ===== Página principal (FRONTEND) =====
 app.get("/", (req, res) => {
   res.send(`
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8" />
-      <title>Diagnóstico de Anuncios</title>
-      <style>
-        body { font-family: Arial, sans-serif; background:#f4f4f4; padding:40px; }
-        textarea { width:100%; height:150px; }
-        button { padding:10px 20px; margin-top:10px; }
-        .respuesta { margin-top:20px; background:#fff; padding:20px; }
-      </style>
-    </head>
-    <body>
-      <h1>Diagnóstico de anuncios inmobiliarios</h1>
-      <textarea id="texto" placeholder="Pega aquí el anuncio..."></textarea><br/>
-      <button onclick="enviar()">Analizar</button>
-      <div class="respuesta" id="respuesta"></div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diagnóstico de anuncios inmobiliarios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Diagnóstico de anuncios inmobiliarios</h1>
+  <p>Pega aquí el texto de tu anuncio:</p>
 
-      <script>
-        async function enviar() {
-          const texto = document.getElementById("texto").value;
-          document.getElementById("respuesta").innerText = "Analizando...";
+  <textarea id="texto"></textarea>
+  <br />
+  <button onclick="analizar()">Analizar anuncio</button>
 
-          const res = await fetch("/diagnostico", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ texto })
-          });
+  <div id="resultado"></div>
 
-          const data = await res.json();
-          document.getElementById("respuesta").innerText =
-            data.resultado || data.error;
-        }
-      </script>
-    </body>
-    </html>
+  <script>
+    async function analizar() {
+      const texto = document.getElementById("texto").value;
+      const resultado = document.getElementById("resultado");
+
+      resultado.innerText = "Analizando...";
+
+      const res = await fetch("/diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texto })
+      });
+
+      const data = await res.json();
+      resultado.innerText = data.resultado || data.error;
+    }
+  </script>
+</body>
+</html>
   `);
 });
 
-// ===== Endpoint OpenAI =====
+// ===== API de diagnóstico =====
 app.post("/diagnostico", async (req, res) => {
   try {
     const { texto } = req.body;
@@ -63,26 +85,24 @@ app.post("/diagnostico", async (req, res) => {
       return res.status(400).json({ error: "Falta el texto" });
     }
 
-    const completion = await client.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "Eres un experto en anuncios inmobiliarios y copy de venta." },
-        { role: "user", content: texto }
+        { role: "system", content: "Eres un experto en anuncios inmobiliarios." },
+        { role: "user", content: texto },
       ],
     });
 
     res.json({
-      resultado: completion.choices[0].message.content
+      resultado: response.choices[0].message.content,
     });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// ===== Start server =====
+// ===== Puerto (Railway) =====
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log("Servidor activo en puerto", PORT);
+  console.log("Servidor escuchando en puerto", PORT);
 });
-
-
