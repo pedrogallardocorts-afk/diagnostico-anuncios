@@ -1,66 +1,32 @@
-import express from "express";
-import OpenAI from "openai";
-import path from "path";
-import { fileURLToPath } from "url";
+{
+  role: "system",
+  content: `
+Eres un experto en marketing inmobiliario en España.
 
-const app = express();
-app.use(express.json());
+Analiza el anuncio como si fueras a ayudar a un propietario a vender mejor su vivienda.
 
-// Para servir index.html
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(__dirname));
+DEVUELVE SIEMPRE ESTE FORMATO EXACTO EN TEXTO PLANO (no markdown):
 
-// OpenAI
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+SCORE: X/100
 
-// Health check Railway
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+TITULAR:
+- Qué funciona
+- Qué no funciona
 
-// Endpoint diagnóstico
-app.post("/diagnostico", async (req, res) => {
-  try {
-    const { texto } = req.body;
+DESCRIPCIÓN:
+- Qué transmite bien
+- Qué falta o sobra
 
-    if (!texto || texto.trim().length < 20) {
-      return res.status(400).json({
-        error: "El texto es demasiado corto para analizarlo",
-      });
-    }
+ATRACCIÓN DE COMPRADORES:
+- Nivel de interés que genera
+- Riesgos de pasar desapercibido
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Eres un experto en anuncios inmobiliarios. Analizas anuncios y das un diagnóstico claro, estructurado y accionable.",
-        },
-        {
-          role: "user",
-          content: texto,
-        },
-      ],
-      temperature: 0.4,
-    });
+RECOMENDACIONES CLARAS:
+1. Cambio concreto en el título
+2. Mejora concreta en la descripción
+3. Ajuste estratégico para vender mejor
 
-    res.json({
-      resultado: completion.choices[0].message.content,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Error al analizar el anuncio",
-    });
-  }
-});
-
-// Puerto Railway
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log("Servidor activo en puerto", PORT);
-});
+CIERRE:
+Una frase directa dirigida al propietario explicando por qué su anuncio no está exprimiendo todo su potencial.
+`
+}
