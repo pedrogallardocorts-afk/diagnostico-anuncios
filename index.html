@@ -2,158 +2,194 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Diagnóstico de Anuncios Inmobiliarios</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clínica de Anuncios Inmobiliarios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-      background: #fafafa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f6f7f8;
       margin: 0;
-      padding: 32px;
-      color: #111;
+      padding: 0;
+      color: #1f2933;
     }
 
     .container {
       max-width: 900px;
-      margin: 0 auto;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     h1 {
-      font-size: 36px;
-      margin-bottom: 8px;
+      font-size: 32px;
+      margin-bottom: 10px;
     }
 
-    p.subtitle {
+    .subtitle {
+      font-size: 16px;
       color: #555;
-      margin-bottom: 24px;
-      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
     }
 
     textarea {
-      width: 100%;
-      min-height: 160px;
-      padding: 16px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      resize: vertical;
+      min-height: 120px;
     }
 
-    button {
-      margin-top: 16px;
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .button {
+      background: #111827;
+      color: #fff;
       padding: 14px 22px;
-      font-size: 16px;
-      border-radius: 8px;
       border: none;
-      background: #111;
-      color: white;
+      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
     }
 
-    button:hover {
+    .button:hover {
       background: #000;
     }
 
-    .resultado {
+    .result {
       margin-top: 40px;
-      background: white;
-      border-radius: 12px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      display: none;
+      padding: 30px;
+      background: #f9fafb;
+      border-left: 4px solid #111827;
+      white-space: pre-wrap;
     }
 
-    .score {
-      font-size: 42px;
-      font-weight: bold;
-      margin-bottom: 16px;
-    }
-
-    .bloque {
-      margin-bottom: 24px;
-    }
-
-    .bloque h3 {
-      margin-bottom: 8px;
-      font-size: 20px;
-    }
-
-    .cta {
-      margin-top: 32px;
+    .note {
+      margin-top: 30px;
       padding: 20px;
-      background: #111;
-      color: white;
-      border-radius: 10px;
-      font-size: 18px;
+      background: #111827;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 15px;
     }
 
-    .cta strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 20px;
+    .small {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Diagnóstico de anuncios inmobiliarios</h1>
+
+    <h1>Clínica de anuncios inmobiliarios</h1>
     <p class="subtitle">
-      Analiza tu anuncio como lo haría un profesional que vende sin quemar el precio.
+      Analizamos tu anuncio como lo haría un profesional.
+      Sin promesas. Sin humo. Con criterio.
     </p>
 
-    <textarea id="texto" placeholder="Pega aquí el texto de tu anuncio inmobiliario..."></textarea>
-    <button onclick="analizar()">Analizar anuncio</button>
+    <div class="section">
+      <label>URL del anuncio (Idealista, Fotocasa…)</label>
+      <input id="url" placeholder="https://www.idealista.com/inmueble/..." />
+      <div class="small">Si no podemos extraer datos, usaremos la información que nos indiques.</div>
+    </div>
 
-    <div id="resultado" class="resultado"></div>
+    <div class="section grid">
+      <div>
+        <label>Precio (€)</label>
+        <input id="precio" type="number" placeholder="Ej. 350000" />
+      </div>
+      <div>
+        <label>Superficie (m²)</label>
+        <input id="metros" type="number" placeholder="Ej. 85" />
+      </div>
+    </div>
+
+    <div class="section grid">
+      <div>
+        <label>Zona / barrio</label>
+        <input id="zona" placeholder="Ej. Eixample, Gràcia…" />
+      </div>
+      <div>
+        <label>Número de fotos</label>
+        <input id="fotos" type="number" placeholder="Ej. 12" />
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Tiempo publicado (en días)</label>
+      <input id="tiempo" type="number" placeholder="Ej. 90" />
+      <div class="small">Si no lo sabes con exactitud, aproxima.</div>
+    </div>
+
+    <div class="section">
+      <label>Descripción del anuncio</label>
+      <textarea id="descripcion" placeholder="Copia aquí el texto completo del anuncio..."></textarea>
+    </div>
+
+    <button class="button" onclick="analizar()">Hacer diagnóstico del anuncio</button>
+
+    <div id="resultado" class="result" style="display:none;"></div>
+
+    <div class="note">
+      Este diagnóstico no busca venderte nada.
+      Busca decirte la verdad sobre tu anuncio.
+    </div>
+
   </div>
 
   <script>
     async function analizar() {
-      const texto = document.getElementById("texto").value;
-      const resultado = document.getElementById("resultado");
+      const payload = {
+        url: document.getElementById("url").value,
+        precio: document.getElementById("precio").value,
+        metros: document.getElementById("metros").value,
+        zona: document.getElementById("zona").value,
+        fotos: document.getElementById("fotos").value,
+        tiempo: document.getElementById("tiempo").value,
+        descripcion: document.getElementById("descripcion").value
+      };
 
-      if (!texto.trim()) {
-        alert("Pega el texto del anuncio primero");
-        return;
-      }
-
-      resultado.style.display = "block";
-      resultado.innerHTML = "Analizando anuncio…";
-
-      const res = await fetch("/diagnostico", {
+      const res = await fetch("/clinica", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texto })
+        body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      const data = await res.text();
 
-      const lineas = data.resultado.split("\n");
-      let html = "";
-
-      lineas.forEach(linea => {
-        if (linea.startsWith("SCORE")) {
-          html += `<div class="score">${linea}</div>`;
-        } else if (linea.endsWith(":")) {
-          html += `<div class="bloque"><h3>${linea}</h3>`;
-        } else if (linea.trim() === "") {
-          html += "</div>";
-        } else {
-          html += `<p>${linea}</p>`;
-        }
-      });
-
-      html += `
-        <div class="cta">
-          <strong>Este anuncio puede dar mucho más.</strong>
-          Si quieres una valoración profesional y una estrategia real de venta,
-          el siguiente paso es hacerlo bien desde el principio.
-        </div>
-      `;
-
-      resultado.innerHTML = html;
+      const box = document.getElementById("resultado");
+      box.style.display = "block";
+      box.textContent = data;
     }
   </script>
 </body>
 </html>
+
