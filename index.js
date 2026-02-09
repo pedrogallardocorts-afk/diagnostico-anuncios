@@ -4,27 +4,15 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware para JSON
-app.use(express.json());
-
-// Servir archivos estáticos (index.html)
+// Middleware para servir archivos estáticos
 app.use(express.static(__dirname));
 
-// Ruta principal
+// Ruta raíz → sirve index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Endpoint de diagnóstico (placeholder)
-app.post("/diagnostico", (req, res) => {
-  res.json({
-    estado: "OK",
-    mensaje: "Diagnóstico recibido correctamente",
-    datos: req.body
-  });
-});
-
 // Arranque del servidor
 app.listen(PORT, () => {
-  console.log(`Servidor activo en puerto ${PORT}`);
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
