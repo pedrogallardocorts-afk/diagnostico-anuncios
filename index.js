@@ -1,30 +1,30 @@
 const express = require("express");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware para JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Ruta raíz (MUY IMPORTANTE)
+// Servir archivos estáticos (index.html)
+app.use(express.static(__dirname));
+
+// Ruta principal
 app.get("/", (req, res) => {
-  res.send(`
-    <h1>Clínica de Anuncios Inmobiliarios</h1>
-    <p>Servidor activo. La app está funcionando correctamente.</p>
-  `);
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Endpoint de diagnóstico (placeholder por ahora)
+// Endpoint de diagnóstico (placeholder)
 app.post("/diagnostico", (req, res) => {
   res.json({
-    status: "ok",
-    mensaje: "Endpoint de diagnóstico operativo",
-    datos_recibidos: req.body
+    estado: "OK",
+    mensaje: "Diagnóstico recibido correctamente",
+    datos: req.body
   });
 });
 
-// Arranque del servidor (CRÍTICO)
+// Arranque del servidor
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
+  console.log(`Servidor activo en puerto ${PORT}`);
 });
