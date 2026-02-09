@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Clínica de anuncios inmobiliarios</title>
+  <meta charset="UTF-8">
+  <title>Clínica de Anuncios Inmobiliarios</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       max-width: 700px;
       margin: 40px auto;
+      line-height: 1.5;
     }
-    input, textarea, button {
+    h1 { margin-bottom: 10px; }
+    input, button {
       width: 100%;
+      padding: 10px;
       margin-bottom: 12px;
-      padding: 8px;
+      font-size: 16px;
     }
     button {
       background: #111;
@@ -29,35 +32,33 @@
 </head>
 <body>
 
-<h1>Clínica de anuncios inmobiliarios</h1>
+<h1>Clínica de Anuncios Inmobiliarios</h1>
+<p>
+Descubre si tu anuncio se está vendiendo… o solo lo están mirando.
+</p>
 
-<input id="precio" type="number" placeholder="Precio (€)">
-<input id="superficie" type="number" placeholder="Superficie (m²)">
-<input id="zona" placeholder="Zona / barrio">
-<input id="fotos" type="number" placeholder="Número de fotos">
-<input id="dias" type="number" placeholder="Días publicado">
-<input id="visitas" type="number" placeholder="Visitas (aprox)">
+<p><strong>Abre tu anuncio en Idealista y copia aquí los datos que ves.</strong><br>
+Son los mismos datos que usa el portal para decidir si tu anuncio se muestra o no.</p>
+
+<input id="visitas" type="number" placeholder="Visitas">
+<input id="guardados" type="number" placeholder="Veces guardado">
 <input id="contactos" type="number" placeholder="Contactos recibidos">
-<textarea id="descripcion" placeholder="Descripción del anuncio"></textarea>
+<input id="dias" type="number" placeholder="Días publicado">
 
-<button onclick="diagnosticar()">Analizar anuncio</button>
+<button onclick="analizar()">Ver diagnóstico</button>
 
 <div id="resultado"></div>
 
 <script>
-async function diagnosticar() {
+async function analizar() {
   const data = {
-    precio: Number(precio.value),
-    superficie: Number(superficie.value),
-    zona: zona.value,
-    fotos: Number(fotos.value),
-    dias: Number(dias.value),
-    visitas: Number(visitas.value),
-    contactos: Number(contactos.value),
-    descripcion: descripcion.value
+    visitas: visitas.value,
+    guardados: guardados.value,
+    contactos: contactos.value,
+    dias: dias.value
   };
 
-  const res = await fetch("/clinica", {
+  const res = await fetch("/analizar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
@@ -66,17 +67,10 @@ async function diagnosticar() {
   const r = await res.json();
 
   document.getElementById("resultado").innerHTML = `
-    <h2>${r.score} / 100 — Estado: ${r.estado}</h2>
-    <p><strong>${r.resumen}</strong></p>
-
-    <h3>Fricciones detectadas</h3>
-    <ul>${r.fricciones.map(f => `<li>${f}</li>`).join("")}</ul>
-
-    <h3>Lectura profesional</h3>
-    <ul>${r.lecturaProfesional.map(l => `<li>${l}</li>`).join("")}</ul>
-
-    <p><strong>Advertencia:</strong> ${r.advertencia}</p>
-    <p><strong>Siguiente paso:</strong> ${r.siguientePaso}</p>
+    <h2>${r.estado}</h2>
+    <p>${r.mensaje}</p>
+    <p><em>Este análisis refleja cómo está reaccionando la gente a tu anuncio hoy.</em></p>
+    <p><strong>Si quieres, puedo ayudarte a entender qué tocar primero y qué no.</strong></p>
   `;
 }
 </script>
