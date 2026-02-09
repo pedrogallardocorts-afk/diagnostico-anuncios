@@ -1,7 +1,7 @@
 {
-  "name": "diagnostico-anuncios",
+  "name": "clinica-anuncios",
   "version": "1.0.0",
-  "description": "Clínica de anuncios inmobiliarios",
+  "description": "Clínica de anuncios inmobiliarios - herramienta de captación",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
