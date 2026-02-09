@@ -2,17 +2,19 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
+
+// Puerto obligatorio en Railway
 const PORT = process.env.PORT || 3000;
 
-// Middleware para servir archivos estáticos
+// Servir archivos estáticos (HTML, CSS, JS)
 app.use(express.static(__dirname));
 
-// Ruta raíz → sirve index.html
+// Ruta raíz: devuelve index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Arranque del servidor
+// Arrancar servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
