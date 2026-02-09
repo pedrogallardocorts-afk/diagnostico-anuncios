@@ -1,7 +1,7 @@
 {
   "name": "diagnostico-anuncios",
   "version": "1.0.0",
-  "description": "Clinica de anuncios inmobiliarios",
+  "description": "Clínica de anuncios inmobiliarios",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
