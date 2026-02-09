@@ -7,66 +7,91 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir index.html
+// Servir la landing
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Endpoint de diagnóstico
-app.post("/clinica", (req, res) => {
+// Endpoint principal de análisis
+app.post("/analizar", (req, res) => {
   const {
-    precio,
-    superficie,
-    zona,
-    fotos,
-    dias,
-    visitas = 0,
-    contactos = 0,
-    descripcion = ""
+    visitas,
+    guardados,
+    contactos,
+    dias
   } = req.body;
 
-  let score = 100;
-  let fricciones = [];
+  const v = Number(visitas);
+  const g = Number(guardados);
+  const c = Number(contactos);
+  const d = Number(dias);
 
-  if (dias > 60) {
-    score -= 20;
-    fricciones.push("Anuncio con desgaste por antigüedad");
+  let texto = [];
+  let estado = "";
+
+  // --- LECTURA DE MERCADO (HUMANA) ---
+
+  if (v > 300 && c <= 2) {
+    estado = "Se ve, pero no convence";
+    texto.push(
+      `Tu anuncio tiene movimiento, pero la gente entra, mira… y sigue buscando.`
+    );
+    texto.push(
+      `Cuando pasa esto, suele ser porque algo frena la decisión de llamar.`
+    );
   }
 
-  if (visitas > 300 && contactos < 3) {
-    score -= 25;
-    fricciones.push("Muchas visitas pero pocos contactos (rechazo del mercado)");
+  if (v < 150 && d > 20) {
+    estado = "Poca visibilidad";
+    texto.push(
+      `El anuncio no está recibiendo suficiente atención para el tiempo que lleva publicado.`
+    );
+    texto.push(
+      `Cuando ocurre esto, el portal suele mostrar antes otros anuncios.`
+    );
   }
 
-  if (fotos < 10) {
-    score -= 15;
-    fricciones.push("Número de fotos insuficiente");
+  if (c >= 5 && d < 30) {
+    estado = "Interés real";
+    texto.push(
+      `El anuncio está generando interés y contactos.`
+    );
+    texto.push(
+      `En estos casos, la venta suele depender más del encaje del comprador que del anuncio.`
+    );
   }
 
-  if (descripcion.length < 120) {
-    score -= 10;
-    fricciones.push("Descripción poco informativa");
+  if (estado === "") {
+    estado = "Interés irregular";
+    texto.push(
+      `El anuncio tiene algo de movimiento, pero no termina de arrancar.`
+    );
+    texto.push(
+      `La reacción del mercado es tibia.`
+    );
   }
 
-  if (score < 0) score = 0;
+  if (d > 60) {
+    texto.push(
+      `Además, al llevar tiempo publicado, cada semana cuesta un poco más reactivar el interés.`
+    );
+  }
+
+  texto.push(
+    `Si no se toca nada, lo normal es que el anuncio vaya perdiendo fuerza poco a poco.`
+  );
+
+  texto.push(
+    `Cuando un anuncio se reactiva bien, no es por retocar detalles, sino por provocar una reacción clara del mercado.`
+  );
 
   res.json({
-    score,
-    estado: score >= 70 ? "Visible" : "Penalizado",
-    resumen: "Así está reaccionando el mercado a tu anuncio hoy.",
-    fricciones,
-    lecturaProfesional: [
-      "El comportamiento del anuncio no valida el posicionamiento actual.",
-      "El mercado está decidiendo, no el texto."
-    ],
-    advertencia:
-      "Si no se actúa, la visibilidad seguirá cayendo de forma progresiva.",
-    siguientePaso:
-      "Ajustar el posicionamiento para provocar reacción real del mercado."
+    estado,
+    mensaje: texto.join(" ")
   });
 });
 
-// Arranque del servidor
+// Arranque
 app.listen(PORT, () => {
-  console.log(`Servidor activo en puerto ${PORT}`);
+  console.log(`Clínica de anuncios activa en puerto ${PORT}`);
 });
