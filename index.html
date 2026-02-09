@@ -1,16 +1,60 @@
-<div id="resultado" style="margin-top:30px;"></div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clínica de anuncios inmobiliarios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+    button {
+      background: #111;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Clínica de anuncios inmobiliarios</h1>
+
+<input id="precio" type="number" placeholder="Precio (€)">
+<input id="superficie" type="number" placeholder="Superficie (m²)">
+<input id="zona" placeholder="Zona / barrio">
+<input id="fotos" type="number" placeholder="Número de fotos">
+<input id="dias" type="number" placeholder="Días publicado">
+<input id="visitas" type="number" placeholder="Visitas (aprox)">
+<input id="contactos" type="number" placeholder="Contactos recibidos">
+<textarea id="descripcion" placeholder="Descripción del anuncio"></textarea>
+
+<button onclick="diagnosticar()">Analizar anuncio</button>
+
+<div id="resultado"></div>
 
 <script>
 async function diagnosticar() {
   const data = {
-    precio: Number(document.getElementById("precio").value),
-    superficie: Number(document.getElementById("superficie").value),
-    zona: document.getElementById("zona").value,
-    fotos: Number(document.getElementById("fotos").value),
-    dias: Number(document.getElementById("dias").value),
-    visitas: Number(document.getElementById("visitas").value || 0),
-    contactos: Number(document.getElementById("contactos").value || 0),
-    descripcion: document.getElementById("descripcion").value
+    precio: Number(precio.value),
+    superficie: Number(superficie.value),
+    zona: zona.value,
+    fotos: Number(fotos.value),
+    dias: Number(dias.value),
+    visitas: Number(visitas.value),
+    contactos: Number(contactos.value),
+    descripcion: descripcion.value
   };
 
   const res = await fetch("/clinica", {
@@ -29,10 +73,13 @@ async function diagnosticar() {
     <ul>${r.fricciones.map(f => `<li>${f}</li>`).join("")}</ul>
 
     <h3>Lectura profesional</h3>
-    <p>${r.lecturaProfesional.join(" ")}</p>
+    <ul>${r.lecturaProfesional.map(l => `<li>${l}</li>`).join("")}</ul>
 
     <p><strong>Advertencia:</strong> ${r.advertencia}</p>
     <p><strong>Siguiente paso:</strong> ${r.siguientePaso}</p>
   `;
 }
 </script>
+
+</body>
+</html>
