@@ -1,299 +1,38 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Clínica de Anuncios Inmobiliarios</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<div id="resultado" style="margin-top:30px;"></div>
 
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f6f8;
-      margin: 0;
-      padding: 40px 16px;
-      color: #1f2933;
-    }
+<script>
+async function diagnosticar() {
+  const data = {
+    precio: Number(document.getElementById("precio").value),
+    superficie: Number(document.getElementById("superficie").value),
+    zona: document.getElementById("zona").value,
+    fotos: Number(document.getElementById("fotos").value),
+    dias: Number(document.getElementById("dias").value),
+    visitas: Number(document.getElementById("visitas").value || 0),
+    contactos: Number(document.getElementById("contactos").value || 0),
+    descripcion: document.getElementById("descripcion").value
+  };
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      background: #ffffff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-    }
+  const res = await fetch("/clinica", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
 
-    h1 {
-      margin-top: 0;
-      font-size: 32px;
-    }
+  const r = await res.json();
 
-    .subtitle {
-      color: #5f6c7b;
-      margin-bottom: 32px;
-    }
+  document.getElementById("resultado").innerHTML = `
+    <h2>${r.score} / 100 — Estado: ${r.estado}</h2>
+    <p><strong>${r.resumen}</strong></p>
 
-    label {
-      font-weight: 600;
-      margin-top: 20px;
-      display: block;
-    }
+    <h3>Fricciones detectadas</h3>
+    <ul>${r.fricciones.map(f => `<li>${f}</li>`).join("")}</ul>
 
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 14px;
-    }
+    <h3>Lectura profesional</h3>
+    <p>${r.lecturaProfesional.join(" ")}</p>
 
-    textarea {
-      min-height: 120px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    button {
-      margin-top: 30px;
-      background: #0f172a;
-      color: #ffffff;
-      padding: 14px 20px;
-      font-size: 15px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #020617;
-    }
-
-    .result {
-      margin-top: 50px;
-      padding-top: 40px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .score-box {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .score {
-      font-size: 42px;
-      font-weight: 700;
-    }
-
-    .score-bar {
-      flex: 1;
-      height: 14px;
-      background: #e5e7eb;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-
-    .score-bar-fill {
-      height: 100%;
-      border-radius: 20px;
-    }
-
-    .section {
-      margin-bottom: 28px;
-    }
-
-    .section h3 {
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    .section ul {
-      padding-left: 18px;
-      margin: 0;
-    }
-
-    .section li {
-      margin-bottom: 6px;
-    }
-
-    .cta {
-      margin-top: 40px;
-      padding: 24px;
-      background: #0f172a;
-      color: #ffffff;
-      border-radius: 10px;
-      font-size: 15px;
-    }
-
-    .cta strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
-
-    @media (max-width: 700px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-    <h1>Clínica de anuncios inmobiliarios</h1>
-    <p class="subtitle">
-      Analizamos tu anuncio como lo haría un profesional.  
-      Sin promesas. Sin humo. Con criterio.
-    </p>
-
-    <label>URL del anuncio</label>
-    <input id="url" placeholder="https://www.idealista.com/inmueble/..." />
-
-    <div class="grid">
-      <div>
-        <label>Precio (€)</label>
-        <input id="precio" type="number" placeholder="350000" />
-      </div>
-      <div>
-        <label>Superficie (m²)</label>
-        <input id="metros" type="number" placeholder="85" />
-      </div>
-    </div>
-
-    <div class="grid">
-      <div>
-        <label>Zona / barrio</label>
-        <input id="zona" placeholder="Eixample" />
-      </div>
-      <div>
-        <label>Número de fotos</label>
-        <input id="fotos" type="number" placeholder="6" />
-      </div>
-    </div>
-
-    <label>Tiempo publicado (días)</label>
-    <input id="dias" type="number" placeholder="90" />
-
-    <label>Descripción del anuncio</label>
-    <textarea id="descripcion"></textarea>
-
-    <button onclick="diagnosticar()">Hacer diagnóstico del anuncio</button>
-
-    <div id="resultado" class="result" style="display:none;">
-      <div class="score-box">
-        <div class="score" id="scoreNumero">—</div>
-        <div class="score-bar">
-          <div id="scoreBar" class="score-bar-fill"></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h3>Diagnóstico ejecutivo</h3>
-        <p id="diagnostico"></p>
-      </div>
-
-      <div class="section">
-        <h3>Fricciones detectadas</h3>
-        <ul id="fricciones"></ul>
-      </div>
-
-      <div class="section">
-        <h3>Recomendaciones prioritarias</h3>
-        <ul id="recomendaciones"></ul>
-      </div>
-
-      <div class="cta">
-        <strong>Este diagnóstico no intenta venderte nada.</strong>
-        Si quieres una segunda opinión profesional sobre cómo reposicionar tu anuncio
-        o valorar una estrategia real de venta, el siguiente paso es hablarlo.
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function diagnosticar() {
-      const precio = Number(document.getElementById("precio").value);
-      const metros = Number(document.getElementById("metros").value);
-      const fotos = Number(document.getElementById("fotos").value);
-      const dias = Number(document.getElementById("dias").value);
-      const descripcion = document.getElementById("descripcion").value;
-
-      let score = 100;
-      let fricciones = [];
-      let recomendaciones = [];
-
-      if (!precio || !metros) {
-        score -= 10;
-        fricciones.push("Precio o superficie insuficientes para evaluar coherencia.");
-      } else {
-        const pm2 = precio / metros;
-        if (pm2 > 5000) {
-          score -= 20;
-          fricciones.push("Precio por m² elevado respecto a mercado medio.");
-          recomendaciones.push("Revisar precio con comparables reales de la zona.");
-        }
-      }
-
-      if (dias > 60) {
-        score -= 20;
-        fricciones.push("Anuncio con desgaste por tiempo publicado.");
-        recomendaciones.push("Reposicionar anuncio o replantear estrategia.");
-      }
-
-      if (fotos < 8) {
-        score -= 15;
-        fricciones.push("Número de fotos por debajo de la media.");
-        recomendaciones.push("Añadir fotos clave: salón, fachada, plano.");
-      }
-
-      if (descripcion.length < 200) {
-        score -= 15;
-        fricciones.push("Descripción escasa y poco diferenciadora.");
-        recomendaciones.push("Reescribir texto con enfoque emocional y práctico.");
-      }
-
-      if (score < 0) score = 0;
-
-      document.getElementById("resultado").style.display = "block";
-      document.getElementById("scoreNumero").innerText = score + " / 100";
-
-      const bar = document.getElementById("scoreBar");
-      bar.style.width = score + "%";
-      bar.style.background =
-        score > 75 ? "#16a34a" :
-        score > 50 ? "#f59e0b" :
-        "#dc2626";
-
-      document.getElementById("diagnostico").innerText =
-        score > 75
-          ? "Anuncio sano, pero con margen claro de optimización."
-          : score > 50
-          ? "Anuncio en riesgo de estancamiento."
-          : "Anuncio con fricciones serias que limitan su venta.";
-
-      const fric = document.getElementById("fricciones");
-      fric.innerHTML = "";
-      fricciones.forEach(f => {
-        const li = document.createElement("li");
-        li.innerText = f;
-        fric.appendChild(li);
-      });
-
-      const rec = document.getElementById("recomendaciones");
-      rec.innerHTML = "";
-      recomendaciones.forEach(r => {
-        const li = document.createElement("li");
-        li.innerText = r;
-        rec.appendChild(li);
-      });
-    }
-  </script>
-</body>
-</html>
+    <p><strong>Advertencia:</strong> ${r.advertencia}</p>
+    <p><strong>Siguiente paso:</strong> ${r.siguientePaso}</p>
+  `;
+}
+</script>
