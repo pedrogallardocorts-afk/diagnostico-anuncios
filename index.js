@@ -1,131 +1,111 @@
-/**
- * Clínica de anuncios inmobiliarios
- * Backend mínimo, estable y productivo
- * Sirve frontend + endpoint de diagnóstico
- */
-
 const express = require("express");
 const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --------------------
 // Middleware
-// --------------------
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// --------------------
-// Servir frontend
-// --------------------
-app.use(express.static(path.join(__dirname)));
-
+// Servir index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// --------------------
-// Endpoint principal de diagnóstico
-// --------------------
-app.post("/clinica", async (req, res) => {
-  try {
-    const {
-      url,
-      precio,
-      superficie,
-      zona,
-      fotos,
-      dias_publicado,
-      visitas,
-      guardados,
-      contactos,
-      descripcion,
-    } = req.body;
+// Endpoint principal de la clínica
+app.post("/clinica", (req, res) => {
+  const {
+    precio,
+    superficie,
+    zona,
+    fotos,
+    dias,
+    visitas,
+    contactos,
+    guardados,
+    descripcion
+  } = req.body;
 
-    // -------- VALIDACIONES BÁSICAS --------
-    if (!precio || !superficie || !zona) {
-      return res.status(400).json({
-        error: "Faltan datos mínimos para el diagnóstico.",
-      });
-    }
+  // Normalización básica
+  const p = Number(precio);
+  const m2 = Number(superficie);
+  const d = Number(dias);
+  const v = Number(visitas || 0);
+  const c = Number(contactos || 0);
+  const g = Number(guardados || 0);
+  const f = Number(fotos || 0);
 
-    const precioM2 = Math.round(precio / superficie);
+  const precioM2 = m2 > 0 ? Math.round(p / m2) : null;
 
-    // -------- REGLAS DURAS (NO IA, MERCADO) --------
-    let score = 100;
-    let fricciones = [];
+  let score = 100;
+  const fricciones = [];
+  const hechos = [];
+  const lectura = [];
 
-    if (dias_publicado && dias_publicado > 60) {
-      score -= 25;
-      fricciones.push(
-        "El anuncio lleva más de 60 días publicado. A partir de este punto el portal reduce visibilidad."
-      );
-    }
+  // Hechos
+  hechos.push(`Precio: ${p.toLocaleString("es-ES")} €`);
+  hechos.push(`Superficie: ${m2} m²`);
+  hechos.push(`Precio/m²: ${precioM2 ? precioM2.toLocaleString("es-ES") + " €" : "N/D"}`);
+  hechos.push(`Zona: ${zona}`);
+  hechos.push(`Días publicado: ${d}`);
+  hechos.push(`Fotos: ${f}`);
+  if (v) hechos.push(`Visitas: ${v}`);
+  if (g) hechos.push(`Guardados: ${g}`);
+  if (c) hechos.push(`Contactos: ${c}`);
 
-    if (visitas && contactos !== undefined && visitas > 0) {
-      const ratio = contactos / visitas;
-      if (ratio < 0.005) {
-        score -= 30;
-        fricciones.push(
-          "Muchas visitas y muy pocos contactos. El mercado está descartando el anuncio (precio o presentación)."
-        );
-      }
-    }
-
-    if (fotos && fotos < 8) {
-      score -= 15;
-      fricciones.push(
-        "Número de fotos por debajo del estándar. Reduce confianza y conversión."
-      );
-    }
-
-    if (descripcion && descripcion.length < 200) {
-      score -= 10;
-      fricciones.push(
-        "Descripción demasiado genérica. No justifica el precio ni diferencia el anuncio."
-      );
-    }
-
-    if (score < 0) score = 0;
-
-    // -------- DIAGNÓSTICO EJECUTIVO --------
-    let estado = "Correcto";
-    if (score < 70) estado = "Débil";
-    if (score < 50) estado = "Penalizado";
-
-    const diagnostico = {
-      calidad_global: `${score} / 100`,
-      estado_anuncio: estado,
-      precio_m2: `${precioM2} €/m²`,
-      resumen:
-        "El comportamiento del mercado indica fricciones claras entre precio, presentación y respuesta de los compradores.",
-      fricciones_detectadas: fricciones,
-      lectura_profesional: [
-        "El mercado valida o rechaza un anuncio en las primeras semanas.",
-        "Cuando hay visitas sin contactos, el problema no es el portal, es la propuesta.",
-        "Sin ajustes relevantes, la visibilidad seguirá cayendo.",
-      ],
-      impacto_si_no_se_actua:
-        "Mayor desgaste del anuncio, reducción progresiva de visibilidad y necesidad de ajustes más agresivos más adelante.",
-      tipo_de_acciones_con_impacto: [
-        "Replanteamiento del precio según reacción real del mercado.",
-        "Mejora clara de la propuesta visual y narrativa.",
-        "Reposicionamiento antes de que el anuncio quede quemado.",
-      ],
-    };
-
-    return res.json(diagnostico);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error: "Error interno al generar el diagnóstico.",
-    });
+  // Reglas duras (scoring realista)
+  if (d > 60) {
+    score -= 20;
+    fricciones.push("Anuncio quemado por tiempo en portal");
+    lectura.push("A partir de 60 días el portal reduce visibilidad si no hay ajustes.");
   }
+
+  if (f < 10) {
+    score -= 15;
+    fricciones.push("Número de fotos por debajo del estándar");
+    lectura.push("Los anuncios con pocas fotos generan desconfianza y menos clics.");
+  }
+
+  if (v > 0 && c === 0) {
+    score -= 25;
+    fricciones.push("Muchas visitas sin contactos");
+    lectura.push("El mercado ve el anuncio pero descarta contactar. Precio o presentación generan rechazo.");
+  }
+
+  if (v > 0 && c > 0 && c / v < 0.005) {
+    score -= 15;
+    fricciones.push("Conversión muy baja");
+    lectura.push("El interés no se transforma en acción. Falta alineación entre precio y percepción.");
+  }
+
+  if (descripcion && descripcion.length < 200) {
+    score -= 10;
+    fricciones.push("Descripción demasiado genérica");
+    lectura.push("El texto no justifica el precio ni resuelve objeciones del comprador.");
+  }
+
+  if (score < 0) score = 0;
+
+  // Diagnóstico ejecutivo
+  let estado = "Competitivo";
+  if (score < 80) estado = "Con fricciones claras";
+  if (score < 60) estado = "Penalizado por el mercado";
+
+  const respuesta = {
+    calidad_global: `${score} / 100`,
+    estado_del_anuncio: estado,
+    resumen_ejecutivo: `El mercado está reaccionando a tu anuncio de forma coherente con los datos observados.`,
+    hechos_objetivos: hechos,
+    fricciones_detectadas: fricciones,
+    lectura_profesional: lectura,
+    conclusion: "El comportamiento del portal refleja la respuesta real de los compradores a este anuncio."
+  };
+
+  res.json(respuesta);
 });
 
-// --------------------
-// Arranque servidor
-// --------------------
+// Arranque del servidor
 app.listen(PORT, () => {
   console.log(`Clínica de anuncios activa en puerto ${PORT}`);
 });
